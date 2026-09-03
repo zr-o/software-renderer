@@ -1,0 +1,6 @@
+# CMake build output
+build/
+
+# Visual Studio / VS Code junk
+.vs/
+.vscode/
