@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstring>
 #include <iostream>
 #include "display/Display.hpp"
 
-Display::Display(int width, int height) : width_(width), height_(height)
+Display::Display(unsigned int width, unsigned int height)
+    : width_(width), height_(height), frameBuffer_(width, height)
 {
     // Initialize SDL's video system
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -14,7 +16,7 @@ Display::Display(int width, int height) : width_(width), height_(height)
 
     std::cout << "SDL initialized successfully!\n";
 
-    if (!SDL_CreateWindowAndRenderer("CPU Rasterizer", width_, height_, SDL_WINDOW_RESIZABLE, &window_, &renderer_))
+    if (!SDL_CreateWindowAndRenderer("CPU Rasterizer", width_, height_, 0, &window_, &renderer_))
     {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window and renderer: %s", SDL_GetError());
         return;
@@ -29,7 +31,7 @@ Display::Display(int width, int height) : width_(width), height_(height)
     }
     std::cout << "SDL texture initialized successfully!\n";
 
-    isRunning_ = true;
+    validState_ = true;
 }
 
 Display::~Display()
@@ -40,19 +42,11 @@ Display::~Display()
     SDL_Quit();
 }
 
-void Display::handleEvents()
+void Display::presentFrame() const
 {
-    while (SDL_PollEvent(&event_))
-    {
-        if (event_.type == SDL_EVENT_QUIT)
-        {
-            isRunning_ = false;
-        }
-    }
-}
+    if (!validState_)
+        return;
 
-FramebufferView Display::lockFrameBuffer() const
-{
     void *pixels = nullptr;
     int pitch = 0;
 
@@ -61,18 +55,31 @@ FramebufferView Display::lockFrameBuffer() const
     if (!SDL_LockTexture(texture_, nullptr, &pixels, &pitch))
     {
         std::cerr << "SDL_LockTexture failed: " << SDL_GetError() << '\n';
+        return;
     }
 
-    return {pixels, width_, height_, pitch};
-}
+    const Pixel *sourcePixels = frameBuffer_.getRawPixelData();
+    for (unsigned int y = 0; y < height_; ++y)
+    {
+        auto *destinationRow = static_cast<uint8_t *>(pixels) + y * pitch;
+        const Pixel *sourceRow = sourcePixels + y * width_;
+        std::memcpy(destinationRow, sourceRow, width_ * sizeof(Pixel));
+    }
 
-void Display::unlockFrameBuffer() const
-{
     SDL_UnlockTexture(texture_);
-}
 
-void Display::presentFrameBuffer() const
-{
     SDL_RenderTexture(renderer_, texture_, nullptr, nullptr);
     SDL_RenderPresent(renderer_);
+}
+
+void Display::beginFrame()
+{
+    if (!validState_)
+        return;
+    frameBuffer_.clear(Colors::BlackPixel);
+}
+
+void Display::putPixel(unsigned int x, unsigned int y, const Pixel &color)
+{
+    frameBuffer_.putPixel(x, y, color);
 }
