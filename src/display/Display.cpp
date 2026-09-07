@@ -25,6 +25,7 @@ Display::Display(int width, int height) : width_(width), height_(height)
     if (!texture_)
     {
         std::cerr << "SDL_CreateTexture failed: " << SDL_GetError() << '\n';
+        return;
     }
     std::cout << "SDL texture initialized successfully!\n";
 
@@ -50,24 +51,27 @@ void Display::handleEvents()
     }
 }
 
-FramebufferView Display::lockFrameBuffer()
+FramebufferView Display::lockFrameBuffer() const
 {
-    void *pixels;
+    void *pixels = nullptr;
     int pitch = 0;
 
     // Every frame, the array of pixels is at a different location which is why
     // we can't really use the address
-    SDL_LockTexture(texture_, nullptr, &pixels, &pitch);
+    if (!SDL_LockTexture(texture_, nullptr, &pixels, &pitch))
+    {
+        std::cerr << "SDL_LockTexture failed: " << SDL_GetError() << '\n';
+    }
 
     return {pixels, width_, height_, pitch};
 }
 
-void Display::unlockFrameBuffer()
+void Display::unlockFrameBuffer() const
 {
     SDL_UnlockTexture(texture_);
 }
 
-void Display::present()
+void Display::presentFrameBuffer() const
 {
     SDL_RenderTexture(renderer_, texture_, nullptr, nullptr);
     SDL_RenderPresent(renderer_);

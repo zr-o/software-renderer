@@ -20,6 +20,11 @@ int main()
         display.handleEvents();
 
         FramebufferView frameBuffer = display.lockFrameBuffer();
+        if (frameBuffer.pixels == nullptr)
+        {
+            break;
+        }
+
         rasterizer.setFrameBuffer(frameBuffer);
 
         Pixel backgroundColor(0, 0, 0);
@@ -42,7 +47,7 @@ int main()
         }
 
         display.unlockFrameBuffer();
-        display.present();
+        display.presentFrameBuffer();
         SDL_Delay(16);
     }
     return 0;
