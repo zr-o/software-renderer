@@ -42,7 +42,7 @@ Display::~Display()
     SDL_Quit();
 }
 
-void Display::presentFrame() const
+void Display::presentFrame()
 {
     if (!validState_)
         return;
@@ -55,6 +55,7 @@ void Display::presentFrame() const
     if (!SDL_LockTexture(texture_, nullptr, &pixels, &pitch))
     {
         std::cerr << "SDL_LockTexture failed: " << SDL_GetError() << '\n';
+        validState_ = false;
         return;
     }
 
@@ -68,8 +69,18 @@ void Display::presentFrame() const
 
     SDL_UnlockTexture(texture_);
 
-    SDL_RenderTexture(renderer_, texture_, nullptr, nullptr);
-    SDL_RenderPresent(renderer_);
+    if (!SDL_RenderTexture(renderer_, texture_, nullptr, nullptr))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_RENDER, "SDL_RenderTexture failed: %s", SDL_GetError());
+        validState_ = false;
+        return;
+    }
+
+    if (!SDL_RenderPresent(renderer_))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_RENDER, "SDL_RenderPresent failed: %s", SDL_GetError());
+        validState_ = false;
+    }
 }
 
 void Display::beginFrame()

@@ -13,9 +13,10 @@ public:
     Display &operator=(const Display &) = delete;
 
     void beginFrame();
-    void presentFrame() const;
+    void presentFrame();
 
-    void putPixel(unsigned x, unsigned y, const Pixel &color);
+    void putPixel(unsigned int x, unsigned int y, const Pixel &color);
+    void putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1);
     [[nodiscard]] bool isValid() const { return validState_; }
 
 private:

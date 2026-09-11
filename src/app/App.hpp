@@ -12,13 +12,15 @@ public:
 private:
     void handleEvents();
     void composeFrame();
-    void drawLine(int x0, int y0, int x1, int y1, const Pixel& color);
 
+    // USER DEFINED FUNCTIONS
+
+private:
     Display display_;
     unsigned int width_;
     unsigned int height_;
-    bool isRunning_ = true;
-    bool rotationPaused_ = false;
-    float rotationAngle_ = 0.0f;
-    uint64_t lastFrameTime_ = 0;
+    bool isRunning_;
+    SDL_Event event_{};
+
+    // USER DEFINED VARIABLES
 };
