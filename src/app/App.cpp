@@ -6,7 +6,7 @@
 
 #include <SDL3/SDL.h>
 
-#include "math/Mat2.h"
+#include "math/Matrix.h"
 
 
 App::App(unsigned int width, unsigned int height)
@@ -48,4 +48,14 @@ void App::handleEvents()
 
 void App::composeFrame()
 {
+    display_.putLine(100, 150, 350, 150, Colors::RedPixel);
+    display_.putLine(350, 150, 350, 350, Colors::RedPixel);
+    display_.putLine(350, 350, 100, 350, Colors::RedPixel);
+    display_.putLine(100, 350, 100, 150, Colors::RedPixel);
+
+    display_.putLine(550, 150, 700, 350, Colors::GreenPixel);
+    display_.putLine(700, 350, 400, 350, Colors::GreenPixel);
+    display_.putLine(400, 350, 550, 150, Colors::GreenPixel);
+
+    display_.putLine(100, 500, 1100, 500, Colors::BluePixel);
 }

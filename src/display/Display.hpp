@@ -16,7 +16,7 @@ public:
     void presentFrame();
 
     void putPixel(unsigned int x, unsigned int y, const Pixel &color);
-    void putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1);
+    void putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, const Pixel& color);
     [[nodiscard]] bool isValid() const { return validState_; }
 
 private:
