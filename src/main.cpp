@@ -2,6 +2,6 @@
 
 int main()
 {
-    App app(1280, 720);
+    App app(720, 720);
     app.run();
 }

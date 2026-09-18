@@ -7,7 +7,8 @@
 #include <SDL3/SDL.h>
 
 #include "math/Matrix.h"
-
+#include "geometry/Cube.hpp"
+#include "graphics/ScreenTransformer.hpp"
 
 App::App(unsigned int width, unsigned int height)
     : display_(width, height), width_(width), height_(height)
@@ -30,7 +31,7 @@ void App::run()
         display_.presentFrame();
         if (!display_.isValid())
             isRunning_ = false;
-            
+
         SDL_Delay(1);
     }
 }
@@ -48,14 +49,23 @@ void App::handleEvents()
 
 void App::composeFrame()
 {
-    display_.putLine(100, 150, 350, 150, graphics::Colors::RedPixel);
-    display_.putLine(350, 150, 350, 350, graphics::Colors::RedPixel);
-    display_.putLine(350, 350, 100, 350, graphics::Colors::RedPixel);
-    display_.putLine(100, 350, 100, 150, graphics::Colors::RedPixel);
+    geometry::Mesh cube = geometry::primitives::createCube(0.5f);
 
-    display_.putLine(550, 150, 700, 350, graphics::Colors::GreenPixel);
-    display_.putLine(700, 350, 400, 350, graphics::Colors::GreenPixel);
-    display_.putLine(400, 350, 550, 150, graphics::Colors::GreenPixel);
+    for (auto &vertex : cube.vertices)
+    {
+        graphics::ScreenTransformer::transformVector(vertex, width_, height_);
+    }
 
-    display_.putLine(100, 500, 1100, 500, graphics::Colors::BluePixel);
+    for (std::size_t i = 0; i + 1 < cube.indices.size(); i += 2)
+    {
+        const math::Vec3f &firstVertex = cube.vertices[cube.indices[i]];
+        const math::Vec3f &secondVertex = cube.vertices[cube.indices[i + 1]];
+
+        display_.putLine(static_cast<unsigned>(firstVertex.elements[0]),
+                         static_cast<unsigned>(firstVertex.elements[1]),
+                         static_cast<unsigned>(secondVertex.elements[0]),
+                         static_cast<unsigned>(secondVertex.elements[1]),
+                         graphics::Colors::WhitePixel);
+    }
 }
+

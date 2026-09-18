@@ -196,10 +196,6 @@ template <arithmetic Scalar, typename T, std::size_t Dimension>
     return vector * scalar;
 }
 
-template <typename T>
-using Vec2 = Vector<T, 2>;
-
-using Vector2D = Vector<float, 2>;
-using Vector2Dd = Vector<double, 2>;
-
+using Vec2f = Vector<float, 2>;
+using Vec3f = Vector<float, 3>;
 }
