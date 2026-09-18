@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <type_traits>
 
+namespace math
+{
+
 template <typename T>
 concept arithmetic = std::integral<T> || std::floating_point<T>;
 
@@ -198,3 +201,5 @@ using Vec2 = Vector<T, 2>;
 
 using Vector2D = Vector<float, 2>;
 using Vector2Dd = Vector<double, 2>;
+
+}

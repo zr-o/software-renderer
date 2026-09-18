@@ -6,6 +6,9 @@
 
 #include "Vector.h"
 
+namespace math
+{
+
 template <std::floating_point T, std::size_t Rows, std::size_t Columns>
 struct Matrix
 {
@@ -176,3 +179,5 @@ constexpr Vector<T, Dimension> &operator*=(
 
 using Matrix2D = Matrix<float, 2, 2>;
 using Matrix2Dd = Matrix<double, 2, 2>;
+
+}

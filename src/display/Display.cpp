@@ -62,12 +62,12 @@ void Display::presentFrame()
         return;
     }
 
-    const Pixel *sourcePixels = frameBuffer_.getRawPixelData();
+    const graphics::Pixel *sourcePixels = frameBuffer_.getRawPixelData();
     for (unsigned int y = 0; y < height_; ++y)
     {
         auto *destinationRow = static_cast<uint8_t *>(pixels) + y * pitch;
-        const Pixel *sourceRow = sourcePixels + y * width_;
-        std::memcpy(destinationRow, sourceRow, width_ * sizeof(Pixel));
+        const graphics::Pixel *sourceRow = sourcePixels + y * width_;
+        std::memcpy(destinationRow, sourceRow, width_ * sizeof(graphics::Pixel));
     }
 
     SDL_UnlockTexture(texture_);
@@ -90,15 +90,15 @@ void Display::beginFrame()
 {
     if (!validState_)
         return;
-    frameBuffer_.clear(Colors::BlackPixel);
+    frameBuffer_.clear(graphics::Colors::BlackPixel);
 }
 
-void Display::putPixel(unsigned int x, unsigned int y, const Pixel &color)
+void Display::putPixel(unsigned int x, unsigned int y, const graphics::Pixel &color)
 {
     frameBuffer_.putPixel(x, y, color);
 }
 
-void Display::putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, const Pixel &color)
+void Display::putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, const graphics::Pixel &color)
 {
     const int dx = static_cast<int>(x1) - static_cast<int>(x0);
     const int dy = static_cast<int>(y1) - static_cast<int>(y0);

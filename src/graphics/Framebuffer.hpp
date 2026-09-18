@@ -4,6 +4,9 @@
 #include "Pixel.hpp"
 #include <vector>
 
+namespace graphics
+{
+
 class Framebuffer
 {
 public:
@@ -26,3 +29,5 @@ private:
     const unsigned int height_;
     std::vector<Pixel> pixels_;
 };
+
+}
