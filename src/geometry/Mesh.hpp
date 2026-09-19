@@ -10,7 +10,8 @@ namespace geometry
     {
         Mesh() = delete;
 
-        Mesh(std::vector<math::Vec3f> vertices, std::vector<unsigned> indices) : vertices{std::move(vertices)}, indices{std::move(indices)} {}
+        Mesh(std::vector<math::Vec3f> vertices, std::vector<unsigned> indices) 
+        : vertices{std::move(vertices)}, indices{std::move(indices)} {}
 
         std::vector<math::Vec3f> vertices;
         std::vector<unsigned> indices;

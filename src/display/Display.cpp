@@ -1,14 +1,10 @@
-#pragma once
-
 #include <cstring>
 #include <iostream>
-#include <cmath>
-#include <algorithm>
 
 #include "display/Display.hpp"
 
 Display::Display(unsigned int width, unsigned int height)
-    : width_(width), height_(height), frameBuffer_(width, height)
+    : width_(width), height_(height)
 {
     // Initialize SDL's video system
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -45,10 +41,17 @@ Display::~Display()
     SDL_Quit();
 }
 
-void Display::presentFrame()
+void Display::presentFrame(const graphics::Framebuffer &frameBuffer)
 {
     if (!validState_)
         return;
+
+    if (frameBuffer.getWidth() != width_ || frameBuffer.getHeight() != height_)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_RENDER, "Framebuffer dimensions must match the display");
+        validState_ = false;
+        return;
+    }
 
     void *pixels = nullptr;
     int pitch = 0;
@@ -62,7 +65,7 @@ void Display::presentFrame()
         return;
     }
 
-    const graphics::Pixel *sourcePixels = frameBuffer_.getRawPixelData();
+    const graphics::Pixel *sourcePixels = frameBuffer.getRawPixelData();
     for (unsigned int y = 0; y < height_; ++y)
     {
         auto *destinationRow = static_cast<uint8_t *>(pixels) + y * pitch;
@@ -83,35 +86,5 @@ void Display::presentFrame()
     {
         SDL_LogError(SDL_LOG_CATEGORY_RENDER, "SDL_RenderPresent failed: %s", SDL_GetError());
         validState_ = false;
-    }
-}
-
-void Display::beginFrame()
-{
-    if (!validState_)
-        return;
-    frameBuffer_.clear(graphics::Colors::BlackPixel);
-}
-
-void Display::putPixel(unsigned int x, unsigned int y, const graphics::Pixel &color)
-{
-    frameBuffer_.putPixel(x, y, color);
-}
-
-void Display::putLine(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, const graphics::Pixel &color)
-{
-    const int dx = static_cast<int>(x1) - static_cast<int>(x0);
-    const int dy = static_cast<int>(y1) - static_cast<int>(y0);
-    const int step = std::max(std::abs(dx), std::abs(dy));
-
-    if (step != 0)
-    {
-        const float stepX = static_cast<float>(dx) / step;
-        const float stepY = static_cast<float>(dy) / step;
-
-        for (int i = 0; i < step + 1; i++)
-        {
-            putPixel(static_cast<int>(std::round(x0 + i * stepX)), static_cast<int>(std::round(y0 + i * stepY)), color);
-        }
     }
 }

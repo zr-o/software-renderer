@@ -18,6 +18,8 @@ add_executable(cpu-rasterizer
     src/app/App.cpp
     src/display/Display.cpp
     src/graphics/Framebuffer.cpp
+    src/graphics/Rasterizer.cpp
+    src/graphics/Renderer.cpp
 )
 
 # cpu-rasterizer uses SDL3

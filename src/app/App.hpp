@@ -1,6 +1,7 @@
 #pragma once
 
 #include "display/Display.hpp"
+#include "graphics/Renderer.hpp"
 
 class App
 {
@@ -17,9 +18,10 @@ private:
 
 private:
     Display display_;
-    unsigned int width_;
-    unsigned int height_;
+    graphics::Renderer renderer_;
+
     bool isRunning_;
+    
     SDL_Event event_{};
 
     // USER DEFINED VARIABLES
