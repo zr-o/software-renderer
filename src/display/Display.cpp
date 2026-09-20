@@ -1,7 +1,7 @@
+#include "display/Display.hpp"
+
 #include <cstring>
 #include <iostream>
-
-#include "display/Display.hpp"
 
 Display::Display(unsigned int width, unsigned int height)
     : width_(width), height_(height)

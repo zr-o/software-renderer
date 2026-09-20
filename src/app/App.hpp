@@ -3,6 +3,8 @@
 #include "display/Display.hpp"
 #include "graphics/Renderer.hpp"
 
+#include <chrono>
+
 class App
 {
 public:
@@ -11,7 +13,7 @@ public:
     void run();
 
 private:
-    void handleEvents();
+    void update();
     void composeFrame();
 
     // USER DEFINED FUNCTIONS
@@ -21,8 +23,13 @@ private:
     graphics::Renderer renderer_;
 
     bool isRunning_;
-    
-    SDL_Event event_{};
+
+    SDL_Event event_{}; // Events for 1 time usage (for example opening inventory)
+    const bool* keys_ = nullptr;  // Contains an array of key states indexed by SDL scan codes
 
     // USER DEFINED VARIABLES
+    float thetaX_{};
+    float thetaY_{};
+    float thetaZ_{};
+    std::chrono::duration<float> dt{};
 };

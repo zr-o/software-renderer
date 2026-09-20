@@ -1,5 +1,4 @@
 #include "graphics/Renderer.hpp"
-
 #include "graphics/ScreenTransformer.hpp"
 
 graphics::Renderer::Renderer(unsigned int width, unsigned int height)

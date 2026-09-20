@@ -177,7 +177,8 @@ constexpr Vector<T, Dimension> &operator*=(
     return vector = vector * matrix;
 }
 
-using Matrix2D = Matrix<float, 2, 2>;
-using Matrix2Dd = Matrix<double, 2, 2>;
-
+using Mat2f = Matrix<float, 2, 2>;
+using Mat2d = Matrix<double, 2, 2>;
+using Mat3f = Matrix<float, 3, 3>;
+using Mat3d = Matrix<double, 3, 3>;
 }
