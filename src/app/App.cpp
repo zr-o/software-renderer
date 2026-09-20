@@ -64,6 +64,10 @@ void App::update()
         thetaZ_ = math::wrapAngle(thetaZ_ + std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_E])
         thetaZ_ = math::wrapAngle(thetaZ_ - std::numbers::pi_v<float> * dt.count());
+    if (keys_[SDL_SCANCODE_Z])
+        zOffset_ -= dt.count();
+    if (keys_[SDL_SCANCODE_X])
+        zOffset_ += dt.count();
 }
 
 void App::composeFrame()
@@ -75,9 +79,10 @@ void App::composeFrame()
     auto rotationY = math::Mat3f::Rotation<2, 0>(thetaY_);
     auto rotationZ = math::Mat3f::Rotation<0, 1>(thetaZ_);
 
-    for (auto& vertex : cube.vertices) {
+    for (auto &vertex : cube.vertices)
+    {
         vertex = vertex * rotationX * rotationY * rotationZ;
-        vertex += math::Vec3f{0.0f, 0.0f, 1.0f};
+        vertex += math::Vec3f{0.0f, 0.0f, 2.0f + zOffset_};
     }
 
     renderer_.drawWireframe(cube);

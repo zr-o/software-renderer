@@ -31,5 +31,6 @@ private:
     float thetaX_{};
     float thetaY_{};
     float thetaZ_{};
+    float zOffset_{};
     std::chrono::duration<float> dt{};
 };

@@ -1,5 +1,7 @@
 #include "graphics/Framebuffer.hpp"
 
+#include <cassert>
+
 void graphics::Framebuffer::clear(const Pixel &color)
 {
     for (Pixel &pixel : pixels_)
@@ -10,8 +12,6 @@ void graphics::Framebuffer::clear(const Pixel &color)
 
 void graphics::Framebuffer::putPixel(unsigned int x, unsigned int y, const Pixel &color)
 {
-    if (x < 0 || x >= width_ || y < 0 || y >= height_)
-        return;
-
+    assert(x >= 0 && x < width_ && y >= 0 && y < height_);
     pixels_[y * width_ + x] = color;
 }
