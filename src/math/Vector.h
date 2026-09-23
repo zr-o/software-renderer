@@ -37,6 +37,16 @@ struct Vector
         }
     }
 
+    template <std::floating_point U, std::size_t OtherDimension>
+    requires(Dimension < OtherDimension)
+    constexpr explicit Vector(const Vector<U, OtherDimension> &other)
+    {
+        for (std::size_t index = 0; index < Dimension; ++index)
+        {
+            elements[index] = static_cast<T>(other[index]);
+        }
+    }
+
     constexpr T &operator[](std::size_t index) { return elements[index]; }
     constexpr const T &operator[](std::size_t index) const { return elements[index]; }
 

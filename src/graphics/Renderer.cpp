@@ -1,8 +1,6 @@
 #include "graphics/Renderer.hpp"
 #include "graphics/ScreenTransformer.hpp"
 
-#include <cmath>
-
 graphics::Renderer::Renderer(unsigned int width, unsigned int height)
     : frameBuffer_(width, height), rasterizer_(frameBuffer_)
 {
@@ -27,9 +25,6 @@ void graphics::Renderer::drawWireframe(const geometry::Mesh &mesh, const Pixel &
         const math::Vec3f &firstVertex = vertices[mesh.indices[i]];
         const math::Vec3f &secondVertex = vertices[mesh.indices[i + 1]];
 
-        rasterizer_.drawLine(static_cast<unsigned>(std::round(firstVertex.elements[0])),
-                             static_cast<unsigned>(std::round(firstVertex.elements[1])),
-                             static_cast<unsigned>(std::round(secondVertex.elements[0])),
-                             static_cast<unsigned>(std::round(secondVertex.elements[1])), color);
+        rasterizer_.drawLine(math::Vec2f(firstVertex), math::Vec2f(secondVertex), color);
     }
 }
