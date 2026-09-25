@@ -85,5 +85,5 @@ void App::composeFrame()
         vertex += math::Vec3f{0.0f, 0.0f, 2.0f + zOffset_};
     }
 
-    renderer_.drawWireframe(cube);
+    renderer_.drawTriangles(cube);
 }

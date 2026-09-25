@@ -13,8 +13,9 @@ public:
     Renderer(unsigned int width, unsigned int height);
 
     void beginFrame(const Pixel &clearColor = Colors::BlackPixel);
-    // Each pair of mesh indices describes a line segment.
+    // Draws triangle edges or line segments according to the mesh topology.
     void drawWireframe(const geometry::Mesh &mesh, const Pixel &color = Colors::WhitePixel);
+    void drawTriangles(const geometry::Mesh &mesh, const Pixel &color = Colors::WhitePixel);
 
     [[nodiscard]] const Framebuffer &getFramebuffer() const { return frameBuffer_; }
 
