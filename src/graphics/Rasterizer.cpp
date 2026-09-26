@@ -4,15 +4,13 @@
 #include <cmath>
 #include <cstdint>
 
-namespace
+float graphics::Rasterizer::edgeFunction(const math::Vec2f &start, const math::Vec2f &end, const math::Vec2f &point)
 {
-    double edgeFunction(const math::Vec2f &start, const math::Vec2f &end, const math::Vec2f &point)
-    {
-        // Promote before subtraction to keep intermediate calculations in double.
-        return (static_cast<double>(end.x()) - start.x()) * (static_cast<double>(point.y()) - start.y()) - (static_cast<double>(end.y()) - start.y()) * (static_cast<double>(point.x()) - start.x());
-    }
+    return ((end.x() - start.x()) * (point.y() - start.y()) - (end.y() - start.y()) * (point.x() - start.x()));
 }
 
+// This assumes that the triangle follows CCW vertex orientation
+// How ever this is calculated like its CW vertex rotation because on the canvas its inversed
 bool graphics::Rasterizer::isTopLeftEdge(const math::Vec2f &start, const math::Vec2f &end)
 {
     return end.y() < start.y() || (end.y() == start.y() && end.x() > start.x());
@@ -23,31 +21,33 @@ bool graphics::Rasterizer::isInsideTriangle(const math::Vec2f &point,
                                             const math::Vec2f &p2,
                                             const math::Vec2f &p3)
 {
-    const double area = edgeFunction(p1, p2, p3);
-    if (area == 0.0)
-    {
-        return false;
-    }
+    constexpr float tolerancePixels = 1e-5f;
 
-    // Reverse negative-area triangles so the interior lies on the positive
-    // side of every edge and the boundary rule is independent of winding.
-    const math::Vec2f &b = area > 0.0 ? p2 : p3;
-    const math::Vec2f &c = area > 0.0 ? p3 : p2;
-    const auto acceptsEdge = [&point](const math::Vec2f &start, const math::Vec2f &end)
+    auto passesEdge = [&](const math::Vec2f &a, const math::Vec2f &b)
     {
-        const double edge = edgeFunction(start, end, point);
-        return edge > 0.0 || (edge == 0.0 && isTopLeftEdge(start, end));
+        const float edge = edgeFunction(a, b, point);
+
+        const float dx = b.x() - a.x();
+        const float dy = b.y() - a.y();
+
+        const float edgeLength = std::sqrt(dx * dx + dy * dy);
+        const float epsilon = tolerancePixels * edgeLength;
+
+        return edge > epsilon ||
+               (std::abs(edge) <= epsilon && isTopLeftEdge(a, b));
     };
 
-    return acceptsEdge(p1, b) && acceptsEdge(b, c) && acceptsEdge(c, p1);
+    return passesEdge(p1, p2) &&
+           passesEdge(p2, p3) &&
+           passesEdge(p3, p1);
 }
 
-void graphics::Rasterizer::drawLine(const math::Vec2f &p1, const math::Vec2f &p2, const Pixel &color)
+void graphics::Rasterizer::drawLine(const geometry::Vertex &p1, const geometry::Vertex &p2, const Pixel &color)
 {
-    const unsigned int x0 = static_cast<unsigned int>(std::round(p1[0]));
-    const unsigned int y0 = static_cast<unsigned int>(std::round(p1[1]));
-    const unsigned int x1 = static_cast<unsigned int>(std::round(p2[0]));
-    const unsigned int y1 = static_cast<unsigned int>(std::round(p2[1]));
+    const unsigned int x0 = static_cast<unsigned int>(std::round(p1.pos.x()));
+    const unsigned int y0 = static_cast<unsigned int>(std::round(p1.pos.y()));
+    const unsigned int x1 = static_cast<unsigned int>(std::round(p2.pos.x()));
+    const unsigned int y1 = static_cast<unsigned int>(std::round(p2.pos.y()));
 
     // Signed intermediates keep decreasing coordinates and the error term safe.
     std::int64_t x = x0;
@@ -80,58 +80,50 @@ void graphics::Rasterizer::drawLine(const math::Vec2f &p1, const math::Vec2f &p2
     }
 }
 
-void graphics::Rasterizer::drawTriangle(const math::Vec2f &p1, const math::Vec2f &p2, const math::Vec2f &p3, const Pixel &color)
+void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geometry::Vertex &p2, const geometry::Vertex &p3)
 {
-    const double area = edgeFunction(p1, p2, p3);
-    if (!std::isfinite(area) || area == 0.0)
+    const math::Vec2f p1Vec2f{p1.pos};
+    const math::Vec2f p2Vec2f{p2.pos};
+    const math::Vec2f p3Vec2f{p3.pos};
+
+    const float ABC = edgeFunction(p1Vec2f, p2Vec2f, p3Vec2f);
+
+    // Dont draw triangles that are back facing
+    if (ABC <= 0)
         return;
 
-    const math::Vec2f &b = area > 0.0 ? p2 : p3;
-    const math::Vec2f &c = area > 0.0 ? p3 : p2;
+    // Get the bounding box of the triangle
+    const int minX = static_cast<int>(std::floor(std::min({p1.pos.x(), p2.pos.x(), p3.pos.x()})));
+    const int maxX = static_cast<int>(std::ceil(std::max({p1.pos.x(), p2.pos.x(), p3.pos.x()})));
+    const int minY = static_cast<int>(std::floor(std::min({p1.pos.y(), p2.pos.y(), p3.pos.y()})));
+    const int maxY = static_cast<int>(std::ceil(std::max({p1.pos.y(), p2.pos.y(), p3.pos.y()})));
 
-    // Bound pixel centers (x + 0.5, y + 0.5), clipping before converting
-    // to unsigned so off-screen triangles cannot cause invalid writes.
-    const double width = frameBuffer_.getWidth();
-    const double height = frameBuffer_.getHeight();
-    const unsigned xBegin = static_cast<unsigned>(std::clamp(std::ceil(
-        static_cast<double>(std::min({p1.x(), b.x(), c.x()})) - 0.5), 0.0, width));
-    const unsigned xEnd = static_cast<unsigned>(std::clamp(std::floor(
-        static_cast<double>(std::max({p1.x(), b.x(), c.x()})) - 0.5) + 1.0, 0.0, width));
-    const unsigned yBegin = static_cast<unsigned>(std::clamp(std::ceil(
-        static_cast<double>(std::min({p1.y(), b.y(), c.y()})) - 0.5), 0.0, height));
-    const unsigned yEnd = static_cast<unsigned>(std::clamp(std::floor(
-        static_cast<double>(std::max({p1.y(), b.y(), c.y()})) - 0.5) + 1.0, 0.0, height));
-    if (xBegin >= xEnd || yBegin >= yEnd)
-        return;
-
-    const bool include0 = isTopLeftEdge(p1, b);
-    const bool include1 = isTopLeftEdge(b, c);
-    const bool include2 = isTopLeftEdge(c, p1);
-    // Moving a sample one pixel right changes its edge value by -dy.
-    const double step0 = static_cast<double>(p1.y()) - b.y();
-    const double step1 = static_cast<double>(b.y()) - c.y();
-    const double step2 = static_cast<double>(c.y()) - p1.y();
-    Pixel *pixels = frameBuffer_.getRawPixelData();
-
-    for (unsigned y = yBegin; y < yEnd; ++y)
+    // Loop through all the pixels of the bounding box
+    for (int y = minY; y <= maxY; y++)
     {
-        // Recompute each row's starting values to limit accumulated error.
-        const math::Vec2f start{xBegin + 0.5f, y + 0.5f};
-        double e0 = edgeFunction(p1, b, start);
-        double e1 = edgeFunction(b, c, start);
-        double e2 = edgeFunction(c, p1, start);
-        Pixel *pixel = pixels + static_cast<std::size_t>(y) * frameBuffer_.getWidth() + xBegin;
-        for (unsigned x = xBegin; x < xEnd; ++x, ++pixel)
+        for (int x = minX; x <= maxX; x++)
         {
-            if ((e0 > 0.0 || (e0 == 0.0 && include0)) &&
-                (e1 > 0.0 || (e1 == 0.0 && include1)) &&
-                (e2 > 0.0 || (e2 == 0.0 && include2)))
+
+            if (isInsideTriangle({x, y}, p1Vec2f, p2Vec2f, p3Vec2f))
             {
-                *pixel = color;
+                // Calculate our edge functions
+                const float ABP = edgeFunction(p1Vec2f, p2Vec2f, {x, y});
+                const float BCP = edgeFunction(p2Vec2f, p3Vec2f, {x, y});
+                const float CAP = edgeFunction(p3Vec2f, p1Vec2f, {x, y});
+
+                const float weightA = BCP / ABC;
+                const float weightB = CAP / ABC;
+                const float weightC = ABP / ABC;
+
+                // Interpolate the colours at point P
+                const std::uint8_t r = static_cast<uint8_t>(std::round(p1.color.r * weightA + p2.color.r * weightB + p3.color.r * weightC));
+                const std::uint8_t g = static_cast<uint8_t>(std::round(p1.color.g * weightA + p2.color.g * weightB + p3.color.g * weightC));
+                const std::uint8_t b = static_cast<uint8_t>(std::round(p1.color.b * weightA + p2.color.b * weightB + p3.color.b * weightC));
+                const std::uint8_t a = static_cast<uint8_t>(std::round(p1.color.a * weightA + p2.color.a * weightB + p3.color.a * weightC));
+
+                // Draw the pixel
+                frameBuffer_.putPixel(x, y, {r, g, b, a});
             }
-            e0 += step0;
-            e1 += step1;
-            e2 += step2;
         }
     }
 }

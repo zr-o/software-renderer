@@ -1,3 +1,5 @@
+#pragma once
+
 #include "app/App.hpp"
 #include "geometry/Cube.hpp"
 #include "math/Helpers.h"
@@ -35,8 +37,6 @@ void App::run()
         display_.presentFrame(renderer_.getFramebuffer());
         if (!display_.isValid())
             isRunning_ = false;
-
-        SDL_Delay(1);
     }
 }
 
@@ -72,7 +72,7 @@ void App::update()
 
 void App::composeFrame()
 {
-    static const geometry::Mesh baseCube = geometry::primitives::createCube(0.5f);
+    static const geometry::Mesh baseCube = geometry::primitives::createMulticolorCube(0.5f);
     auto cube = baseCube;
 
     auto rotationX = math::Mat3f::Rotation<1, 2>(thetaX_);
@@ -81,8 +81,8 @@ void App::composeFrame()
 
     for (auto &vertex : cube.vertices)
     {
-        vertex = vertex * rotationX * rotationY * rotationZ;
-        vertex += math::Vec3f{0.0f, 0.0f, 2.0f + zOffset_};
+        vertex.pos = vertex.pos * rotationX * rotationY * rotationZ;
+        vertex.pos += math::Vec3f{0.0f, 0.0f, 2.0f + zOffset_};
     }
 
     renderer_.drawTriangles(cube);

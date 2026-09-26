@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <utility>
-#include "math/Vector.h"
+#include "geometry/Vertex.h"
 
 namespace geometry
 {
@@ -11,10 +11,10 @@ namespace geometry
     {
         Mesh() = delete;
 
-        Mesh(std::vector<math::Vec3f> vertices, std::vector<unsigned> indices, bool isFormedOfTriangles)
+        Mesh(std::vector<geometry::Vertex> vertices, std::vector<unsigned> indices, bool isFormedOfTriangles)
         : vertices{std::move(vertices)}, indices{std::move(indices)}, isFormedOfTriangles(isFormedOfTriangles) {}
 
-        std::vector<math::Vec3f> vertices;
+        std::vector<geometry::Vertex> vertices;
         // Groups of three indices for triangles, pairs for line segments.
         std::vector<unsigned> indices;
         bool isFormedOfTriangles;

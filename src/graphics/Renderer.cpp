@@ -17,26 +17,26 @@ void graphics::Renderer::drawWireframe(const geometry::Mesh &mesh, const Pixel &
     auto vertices = mesh.vertices;
     for (auto &vertex : vertices)
     {
-        ScreenTransformer::transformVector(vertex, frameBuffer_.getWidth(), frameBuffer_.getHeight());
+        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(), frameBuffer_.getHeight());
     }
 
     const std::size_t stride = mesh.isFormedOfTriangles ? 3 : 2;
     for (std::size_t i = 0; i + stride - 1 < mesh.indices.size(); i += stride)
     {
-        const math::Vec3f &firstVertex = vertices[mesh.indices[i]];
-        const math::Vec3f &secondVertex = vertices[mesh.indices[i + 1]];
+        const geometry::Vertex &firstVertex = vertices[mesh.indices[i]];
+        const geometry::Vertex &secondVertex = vertices[mesh.indices[i + 1]];
 
-        rasterizer_.drawLine(math::Vec2f(firstVertex), math::Vec2f(secondVertex), color);
+        rasterizer_.drawLine(firstVertex, secondVertex, color);
         if (mesh.isFormedOfTriangles)
         {
-            const math::Vec3f &thirdVertex = vertices[mesh.indices[i + 2]];
-            rasterizer_.drawLine(math::Vec2f(secondVertex), math::Vec2f(thirdVertex), color);
-            rasterizer_.drawLine(math::Vec2f(thirdVertex), math::Vec2f(firstVertex), color);
+            const geometry::Vertex &thirdVertex = vertices[mesh.indices[i + 2]];
+            rasterizer_.drawLine(secondVertex, thirdVertex, color);
+            rasterizer_.drawLine(thirdVertex, firstVertex, color);
         }
     }
 }
 
-void graphics::Renderer::drawTriangles(const geometry::Mesh &mesh, const Pixel &color)
+void graphics::Renderer::drawTriangles(const geometry::Mesh &mesh)
 {
     if (!mesh.isFormedOfTriangles) return;
 
@@ -44,15 +44,15 @@ void graphics::Renderer::drawTriangles(const geometry::Mesh &mesh, const Pixel &
     auto vertices = mesh.vertices;
     for (auto &vertex : vertices)
     {
-        ScreenTransformer::transformVector(vertex, frameBuffer_.getWidth(), frameBuffer_.getHeight());
+        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(), frameBuffer_.getHeight());
     }
 
     for (std::size_t i = 0; i < mesh.indices.size(); i += 3)
     {
-        const math::Vec3f &firstVertex = vertices[mesh.indices[i]];
-        const math::Vec3f &secondVertex = vertices[mesh.indices[i + 1]];
-        const math::Vec3f &thirdVertex = vertices[mesh.indices[i + 2]];
+        const geometry::Vertex &firstVertex = vertices[mesh.indices[i]];
+        const geometry::Vertex &secondVertex = vertices[mesh.indices[i + 1]];
+        const geometry::Vertex &thirdVertex = vertices[mesh.indices[i + 2]];
 
-       rasterizer_.drawTriangle(math::Vec2f{firstVertex}, math::Vec2f{secondVertex}, math::Vec2f{thirdVertex}, color);
+       rasterizer_.drawTriangle(firstVertex, secondVertex, thirdVertex);
     }
 }

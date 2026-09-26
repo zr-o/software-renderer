@@ -7,18 +7,18 @@ namespace geometry
     namespace primitives
     {
         // s is the half-extent; triangle faces have outward-facing winding.
-        inline Mesh createCube(float s, bool isFormedOfTriangles = true)
+        inline Mesh createCube(float s, bool isFormedOfTriangles, graphics::Pixel color)
         {
-            std::vector<math::Vec3f> vertices{
-                        {-s, -s, -s}, // 0
-                        {s, -s, -s},  // 1
-                        {-s, s, -s},  // 2
-                        {s, s, -s},   // 3
+            std::vector<Vertex> vertices{
+                        {{-s, -s, -s}, color}, // 0
+                        {{s, -s, -s}, color},  // 1
+                        {{-s, s, -s}, color},  // 2
+                        {{s, s, -s}, color},   // 3
 
-                        {-s, -s, s}, // 4
-                        {s, -s, s},  // 5
-                        {-s, s, s},  // 6
-                        {s, s, s}    // 7
+                        {{-s, -s, s}, color}, // 4
+                        {{s, -s, s}, color},  // 5
+                        {{-s, s, s}, color},  // 6
+                        {{s, s, s}, color}    // 7
                     };
 
             if (isFormedOfTriangles)
@@ -54,6 +54,20 @@ namespace geometry
                      2u, 6u,
                      3u, 7u},
                     false};
+        }
+
+        inline Mesh createMulticolorCube(float s, bool isFormedOfTriangles = true)
+        {
+            Mesh cube = createCube(s, isFormedOfTriangles, graphics::Colors::RedPixel);
+            cube.vertices[0].color = graphics::Colors::RedPixel;
+            cube.vertices[1].color = graphics::Colors::GreenPixel;
+            cube.vertices[2].color = graphics::Colors::GreenPixel;
+            cube.vertices[3].color = graphics::Colors::BluePixel;
+            cube.vertices[4].color = graphics::Colors::GreenPixel;
+            cube.vertices[5].color = graphics::Colors::BluePixel;
+            cube.vertices[6].color = graphics::Colors::BluePixel;
+            cube.vertices[7].color = graphics::Colors::RedPixel;
+            return cube;
         }
     }
 }
