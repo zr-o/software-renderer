@@ -32,6 +32,7 @@ namespace Colors
     inline constexpr Pixel BluePixel  {  0u,   0u, 255u};
     inline constexpr Pixel BlackPixel {  0u,   0u,   0u};
     inline constexpr Pixel WhitePixel {255u, 255u, 255u};
+    inline constexpr Pixel OrangePixel {255u, 165u, 0u};
 }
 
 }

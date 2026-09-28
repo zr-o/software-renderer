@@ -3,6 +3,8 @@
 #include "graphics/Framebuffer.hpp"
 #include "math/Vector.h"
 #include "geometry/Vertex.h"
+#include <utility>
+#include <tuple>
 namespace graphics
 {
 
@@ -22,8 +24,8 @@ namespace graphics
         [[nodiscard]] bool isTopLeftEdge(const math::Vec2f &start, const math::Vec2f &end);
 
         // Includes top/left boundaries, excludes bottom/right boundaries.
-        // Accepts either winding; zero-area triangles contain no points.
-        [[nodiscard]] bool isInsideTriangle(const math::Vec2f &point,
+        // The tuple is the result of the edgeFunction for each edge which allows us to not recalculate it again
+        [[nodiscard]] std::pair<bool, std::tuple<float, float, float>> isInsideTriangle(const math::Vec2f &point,
                                             const math::Vec2f &p1,
                                             const math::Vec2f &p2,
                                             const math::Vec2f &p3);

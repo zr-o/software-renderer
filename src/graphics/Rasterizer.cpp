@@ -16,14 +16,14 @@ bool graphics::Rasterizer::isTopLeftEdge(const math::Vec2f &start, const math::V
     return end.y() < start.y() || (end.y() == start.y() && end.x() > start.x());
 }
 
-bool graphics::Rasterizer::isInsideTriangle(const math::Vec2f &point,
-                                            const math::Vec2f &p1,
-                                            const math::Vec2f &p2,
-                                            const math::Vec2f &p3)
+std::pair<bool, std::tuple<float, float, float>> graphics::Rasterizer::isInsideTriangle(const math::Vec2f &point,
+                                                                                        const math::Vec2f &p1,
+                                                                                        const math::Vec2f &p2,
+                                                                                        const math::Vec2f &p3)
 {
     constexpr float tolerancePixels = 1e-5f;
 
-    auto passesEdge = [&](const math::Vec2f &a, const math::Vec2f &b)
+    auto passesEdge = [&](const math::Vec2f &a, const math::Vec2f &b) -> std::pair<bool, float>
     {
         const float edge = edgeFunction(a, b, point);
 
@@ -33,13 +33,21 @@ bool graphics::Rasterizer::isInsideTriangle(const math::Vec2f &point,
         const float edgeLength = std::sqrt(dx * dx + dy * dy);
         const float epsilon = tolerancePixels * edgeLength;
 
-        return edge > epsilon ||
-               (std::abs(edge) <= epsilon && isTopLeftEdge(a, b));
+        return {edge > epsilon ||
+                    (std::abs(edge) <= epsilon && isTopLeftEdge(a, b)),
+                edge};
     };
 
-    return passesEdge(p1, p2) &&
-           passesEdge(p2, p3) &&
-           passesEdge(p3, p1);
+    auto [con1, e1] = passesEdge(p1, p2);
+    if (!con1)
+        return {false, {0.f, 0.f, 0.f}};
+
+    auto [con2, e2] = passesEdge(p2, p3);
+    if (!con2)
+        return {false, {0.f, 0.f, 0.f}};
+
+    auto [con3, e3] = passesEdge(p3, p1);
+    return {con3, {e1, e2, e3}};
 }
 
 void graphics::Rasterizer::drawLine(const geometry::Vertex &p1, const geometry::Vertex &p2, const Pixel &color)
@@ -103,13 +111,11 @@ void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geomet
     {
         for (int x = minX; x <= maxX; x++)
         {
-
-            if (isInsideTriangle({x, y}, p1Vec2f, p2Vec2f, p3Vec2f))
+            auto [isInside, edgeValues] = isInsideTriangle({x, y}, p1Vec2f, p2Vec2f, p3Vec2f);
+            if (isInside)
             {
-                // Calculate our edge functions
-                const float ABP = edgeFunction(p1Vec2f, p2Vec2f, {x, y});
-                const float BCP = edgeFunction(p2Vec2f, p3Vec2f, {x, y});
-                const float CAP = edgeFunction(p3Vec2f, p1Vec2f, {x, y});
+                // Calculate our weight
+                const auto [ABP, BCP, CAP] = edgeValues;
 
                 const float weightA = BCP / ABC;
                 const float weightB = CAP / ABC;
