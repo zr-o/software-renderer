@@ -16,7 +16,7 @@ namespace graphics
         // While vertex is technically 3D, we discard the Z component.
         // We use geometry::Vertex because it contains the color of each point which allows us to interpolate colors.
         void drawLine(const geometry::Vertex &p1, const geometry::Vertex &p2, const Pixel &color);
-        void drawTriangle(const geometry::Vertex &p1, const geometry::Vertex &p2, const geometry::Vertex &p3);
+        void drawTriangle(const geometry::Vertex &p1, const geometry::Vertex &p2, const geometry::Vertex &p3, bool usingBackfaceCulling);
 
     private:
         // Screen coordinates: x increases rightward, y downward. The directed edge

@@ -16,12 +16,14 @@ public:
     // Draws triangle edges or line segments according to the mesh topology.
     void drawWireframe(const geometry::Mesh &mesh, const Pixel &color = Colors::WhitePixel);
     void drawTriangles(const geometry::Mesh &mesh);
+    void setBackfaceCulling(bool state) { usingBackfaceCulling_ = state;}
 
     [[nodiscard]] const Framebuffer &getFramebuffer() const { return frameBuffer_; }
 
 private:
     Framebuffer frameBuffer_;
     Rasterizer rasterizer_;
+    bool usingBackfaceCulling_ = true;
 };
 
 }

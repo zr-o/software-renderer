@@ -53,6 +53,6 @@ void graphics::Renderer::drawTriangles(const geometry::Mesh &mesh)
         const geometry::Vertex &secondVertex = vertices[mesh.indices[i + 1]];
         const geometry::Vertex &thirdVertex = vertices[mesh.indices[i + 2]];
 
-       rasterizer_.drawTriangle(firstVertex, secondVertex, thirdVertex);
+       rasterizer_.drawTriangle(firstVertex, secondVertex, thirdVertex, usingBackfaceCulling_);
     }
 }

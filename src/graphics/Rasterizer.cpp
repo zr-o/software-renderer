@@ -88,7 +88,7 @@ void graphics::Rasterizer::drawLine(const geometry::Vertex &p1, const geometry::
     }
 }
 
-void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geometry::Vertex &p2, const geometry::Vertex &p3)
+void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geometry::Vertex &p2, const geometry::Vertex &p3, bool usingBackfaceCulling)
 {
     const math::Vec2f p1Vec2f{p1.pos};
     const math::Vec2f p2Vec2f{p2.pos};
@@ -96,9 +96,16 @@ void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geomet
 
     const float ABC = edgeFunction(p1Vec2f, p2Vec2f, p3Vec2f);
 
-    // Dont draw triangles that are back facing
-    if (ABC <= 0)
+    // Dont draw triangles that are back facing only if backfaceCulling is activated
+    if (ABC < 0.f)
+    {
+        if (usingBackfaceCulling)
+            return;
+
+        // Reverse the winding so the edge tests work.
+        drawTriangle(p1, p3, p2, false);
         return;
+    }
 
     // Get the bounding box of the triangle
     const int minX = static_cast<int>(std::floor(std::min({p1.pos.x(), p2.pos.x(), p3.pos.x()})));
