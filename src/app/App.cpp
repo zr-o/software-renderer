@@ -85,6 +85,6 @@ void App::composeFrame()
         vertex.pos += math::Vec3f{0.0f, 0.0f, 2.0f + zOffset_};
     }
 
-    renderer_.setBackfaceCulling(false);
+    renderer_.setBackfaceCulling(true);
     renderer_.drawTriangles(cube);
 }

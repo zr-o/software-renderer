@@ -25,6 +25,7 @@ namespace graphics
 
         // Includes top/left boundaries, excludes bottom/right boundaries.
         // The tuple is the result of the edgeFunction for each edge which allows us to not recalculate it again
+        // This function is deprecated
         [[nodiscard]] std::pair<bool, std::tuple<float, float, float>> isInsideTriangle(const math::Vec2f &point,
                                             const math::Vec2f &p1,
                                             const math::Vec2f &p2,

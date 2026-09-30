@@ -16,6 +16,7 @@ bool graphics::Rasterizer::isTopLeftEdge(const math::Vec2f &start, const math::V
     return end.y() < start.y() || (end.y() == start.y() && end.x() > start.x());
 }
 
+// Deprecated function, drawTriangles doesnt use it anymore.
 std::pair<bool, std::tuple<float, float, float>> graphics::Rasterizer::isInsideTriangle(const math::Vec2f &point,
                                                                                         const math::Vec2f &p1,
                                                                                         const math::Vec2f &p2,
@@ -113,20 +114,47 @@ void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geomet
     const int minY = static_cast<int>(std::floor(std::min({p1.pos.y(), p2.pos.y(), p3.pos.y()})));
     const int maxY = static_cast<int>(std::ceil(std::max({p1.pos.y(), p2.pos.y(), p3.pos.y()})));
 
+    auto calculateConstants = [&](const math::Vec2f &a, const math::Vec2f &b) -> std::tuple<float, float, float>
+    {
+        constexpr float tolerancePixels = 1e-5f;
+
+        const float dx = b.x() - a.x();
+        const float dy = b.y() - a.y();
+
+        const float edgeLength = std::sqrt(dx * dx + dy * dy);
+        const float epsilon = tolerancePixels * edgeLength;
+
+        return {dx, dy, epsilon};
+    };
+
+    // Represents the 3 edge function values of each edge that we will modify by dx and dy for each pixel
+    // Without having to recalculate. Go see pineda algo for more info
+    float ABP = edgeFunction(p1Vec2f, p2Vec2f, {static_cast<float>(minX) + 0.5f, static_cast<float>(minY) + 0.5f});
+    float BCP = edgeFunction(p2Vec2f, p3Vec2f, {static_cast<float>(minX) + 0.5f, static_cast<float>(minY) + 0.5f});
+    float CAP = edgeFunction(p3Vec2f, p1Vec2f, {static_cast<float>(minX) + 0.5f, static_cast<float>(minY) + 0.5f});
+
+
+
+    auto const [dxAB, dyAB, epsilonAB] = calculateConstants(p1Vec2f, p2Vec2f);
+    auto const [dxBC, dyBC, epsilonBC] = calculateConstants(p2Vec2f, p3Vec2f);
+    auto const [dxCA, dyCA, epsilonCA] = calculateConstants(p3Vec2f, p1Vec2f);
+
     // Loop through all the pixels of the bounding box
     for (int y = minY; y <= maxY; y++)
-    {
+    {   
+        // We do that so the edge values reset to x = minX at each row.
+        float ABPconstY = ABP;
+        float BCPconstY = BCP;
+        float CAPconstY = CAP;
+
         for (int x = minX; x <= maxX; x++)
         {
-            auto [isInside, edgeValues] = isInsideTriangle({x, y}, p1Vec2f, p2Vec2f, p3Vec2f);
-            if (isInside)
+            if ((ABPconstY > epsilonAB || (std::abs(ABPconstY) <= epsilonAB && isTopLeftEdge(p1Vec2f, p2Vec2f))) && (BCPconstY > epsilonBC || (std::abs(BCPconstY) <= epsilonBC && isTopLeftEdge(p2Vec2f, p3Vec2f))) && (CAPconstY > epsilonCA || (std::abs(CAPconstY) <= epsilonCA && isTopLeftEdge(p3Vec2f, p1Vec2f))))
             {
                 // Calculate our weight
-                const auto [ABP, BCP, CAP] = edgeValues;
-
-                const float weightA = BCP / ABC;
-                const float weightB = CAP / ABC;
-                const float weightC = ABP / ABC;
+                const float weightA = BCPconstY / ABC;
+                const float weightB = CAPconstY / ABC;
+                const float weightC = ABPconstY / ABC;
 
                 // Interpolate the colours at point P
                 const std::uint8_t r = static_cast<uint8_t>(std::round(p1.color.r * weightA + p2.color.r * weightB + p3.color.r * weightC));
@@ -137,6 +165,15 @@ void graphics::Rasterizer::drawTriangle(const geometry::Vertex &p1, const geomet
                 // Draw the pixel
                 frameBuffer_.putPixel(x, y, {r, g, b, a});
             }
+
+            // Move by -dy the e values
+            ABPconstY -= dyAB;
+            BCPconstY -= dyBC;
+            CAPconstY -= dyCA;
         }
+        // Move by dx the e values
+        ABP += dxAB;
+        BCP += dxBC;
+        CAP += dxCA;
     }
 }
