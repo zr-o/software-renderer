@@ -1,8 +1,9 @@
 #include "graphics/Renderer.hpp"
 #include "graphics/ScreenTransformer.hpp"
+#include "math/Geometry.hpp"
 
 graphics::Renderer::Renderer(unsigned int width, unsigned int height)
-    : frameBuffer_(width, height), rasterizer_(frameBuffer_)
+    : frameBuffer_(width, height), rasterizer_(frameBuffer_, width, height)
 {
 }
 
@@ -11,13 +12,15 @@ void graphics::Renderer::beginFrame(const Pixel &clearColor)
     frameBuffer_.clear(clearColor);
 }
 
-void graphics::Renderer::drawWireframe(const geometry::Mesh &mesh, const Pixel &color)
+void graphics::Renderer::drawWireframe(const geometry::Mesh &mesh,
+                                       const Color &color)
 {
     // Transform a copy so the original mesh can be reused next frame.
     auto vertices = mesh.vertices;
     for (auto &vertex : vertices)
     {
-        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(), frameBuffer_.getHeight());
+        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(),
+                                           frameBuffer_.getHeight());
     }
 
     const std::size_t stride = mesh.isFormedOfTriangles ? 3 : 2;
@@ -38,21 +41,42 @@ void graphics::Renderer::drawWireframe(const geometry::Mesh &mesh, const Pixel &
 
 void graphics::Renderer::drawTriangles(const geometry::Mesh &mesh)
 {
-    if (!mesh.isFormedOfTriangles) return;
+    if (!mesh.isFormedOfTriangles)
+        return;
 
     // Transform a copy so the original mesh can be reused next frame.
     auto vertices = mesh.vertices;
     for (auto &vertex : vertices)
     {
-        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(), frameBuffer_.getHeight());
+        ScreenTransformer::transformVector(vertex.pos, frameBuffer_.getWidth(),
+                                           frameBuffer_.getHeight());
     }
 
     for (std::size_t i = 0; i < mesh.indices.size(); i += 3)
     {
-        const geometry::Vertex &firstVertex = vertices[mesh.indices[i]];
-        const geometry::Vertex &secondVertex = vertices[mesh.indices[i + 1]];
-        const geometry::Vertex &thirdVertex = vertices[mesh.indices[i + 2]];
+        geometry::Vertex firstVertex = vertices[mesh.indices[i]];
+        geometry::Vertex secondVertex = vertices[mesh.indices[i + 1]];
+        geometry::Vertex thirdVertex = vertices[mesh.indices[i + 2]];
 
-       rasterizer_.drawTriangle(firstVertex, secondVertex, thirdVertex, usingBackfaceCulling_);
+        const float area = math::edgeFunction(math::Vec2f{firstVertex.pos},
+                                              math::Vec2f{secondVertex.pos},
+                                              math::Vec2f{thirdVertex.pos});
+
+        // 1. Reject degenerate triangles
+        if (area == 0.0f)
+            continue;
+
+        // 2. Backface culling
+        if (usingBackfaceCulling_ && area < 0.0f)
+            continue;
+
+        // 3. Normalize winding for the rasterizer
+        if (area < 0.0f)
+            std::swap(secondVertex, thirdVertex);
+
+        rasterizer_.drawTriangle(
+            firstVertex, secondVertex, thirdVertex,
+            [&](const graphics::Fragment &fragment)
+            { frameBuffer_.putPixel(fragment.x, fragment.y, fragment.color); });
     }
 }

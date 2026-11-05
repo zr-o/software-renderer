@@ -2,8 +2,8 @@
 
 #include "app/App.hpp"
 #include "geometry/Cube.hpp"
-#include "math/Helpers.h"
-#include "math/Matrix.h"
+#include "math/Helpers.hpp"
+#include "math/Matrix.hpp"
 
 #include <SDL3/SDL.h>
 #include <chrono>
@@ -45,7 +45,8 @@ void App::update()
     // events: things that happen once
     while (SDL_PollEvent(&event_))
     {
-        if (event_.type == SDL_EVENT_QUIT || event_.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+        if (event_.type == SDL_EVENT_QUIT ||
+            event_.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
         {
             isRunning_ = false;
         }
@@ -53,17 +54,23 @@ void App::update()
 
     // state: things that continue while held
     if (keys_[SDL_SCANCODE_W])
-        thetaX_ = math::wrapAngle(thetaX_ - std::numbers::pi_v<float> * dt.count());
+        thetaX_ =
+            math::wrapAngle(thetaX_ - std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_S])
-        thetaX_ = math::wrapAngle(thetaX_ + std::numbers::pi_v<float> * dt.count());
+        thetaX_ =
+            math::wrapAngle(thetaX_ + std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_A])
-        thetaY_ = math::wrapAngle(thetaY_ - std::numbers::pi_v<float> * dt.count());
+        thetaY_ =
+            math::wrapAngle(thetaY_ - std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_D])
-        thetaY_ = math::wrapAngle(thetaY_ + std::numbers::pi_v<float> * dt.count());
+        thetaY_ =
+            math::wrapAngle(thetaY_ + std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_Q])
-        thetaZ_ = math::wrapAngle(thetaZ_ + std::numbers::pi_v<float> * dt.count());
+        thetaZ_ =
+            math::wrapAngle(thetaZ_ + std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_E])
-        thetaZ_ = math::wrapAngle(thetaZ_ - std::numbers::pi_v<float> * dt.count());
+        thetaZ_ =
+            math::wrapAngle(thetaZ_ - std::numbers::pi_v<float> * dt.count());
     if (keys_[SDL_SCANCODE_Z])
         zOffset_ -= dt.count();
     if (keys_[SDL_SCANCODE_X])
@@ -72,7 +79,8 @@ void App::update()
 
 void App::composeFrame()
 {
-    static const geometry::Mesh baseCube = geometry::primitives::createMulticolorCube(0.5f);
+    static const geometry::Mesh baseCube =
+        geometry::primitives::createMulticolorCube(0.5f);
     auto cube = baseCube;
 
     auto rotationX = math::Mat3f::Rotation<1, 2>(thetaX_);

@@ -1,22 +1,26 @@
 #pragma once
 
-#include <vector>
+#include "geometry/Vertex.hpp"
 #include <utility>
-#include "geometry/Vertex.h"
+#include <vector>
 
 namespace geometry
 {
 
-    struct Mesh
+struct Mesh
+{
+    Mesh() = delete;
+
+    Mesh(std::vector<geometry::Vertex> vertices, std::vector<unsigned> indices,
+         bool isFormedOfTriangles)
+        : vertices{std::move(vertices)}, indices{std::move(indices)},
+          isFormedOfTriangles(isFormedOfTriangles)
     {
-        Mesh() = delete;
+    }
 
-        Mesh(std::vector<geometry::Vertex> vertices, std::vector<unsigned> indices, bool isFormedOfTriangles)
-        : vertices{std::move(vertices)}, indices{std::move(indices)}, isFormedOfTriangles(isFormedOfTriangles) {}
-
-        std::vector<geometry::Vertex> vertices;
-        // Groups of three indices for triangles, pairs for line segments.
-        std::vector<unsigned> indices;
-        bool isFormedOfTriangles;
-    };
-}
+    std::vector<geometry::Vertex> vertices;
+    // Groups of three indices for triangles, pairs for line segments.
+    std::vector<unsigned> indices;
+    bool isFormedOfTriangles;
+};
+} // namespace geometry

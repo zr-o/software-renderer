@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cmath>
-#include <cstddef>
 #include <concepts>
+#include <cstddef>
 
-#include "Vector.h"
+#include "math/Vector.hpp"
 
 namespace math
 {
@@ -48,10 +48,12 @@ struct Matrix
     }
 
     constexpr T *operator[](std::size_t row) { return elements[row]; }
-    constexpr const T *operator[](std::size_t row) const { return elements[row]; }
+    constexpr const T *operator[](std::size_t row) const
+    {
+        return elements[row];
+    }
 
-    template <arithmetic Scalar>
-    constexpr Matrix &operator*=(Scalar scalar)
+    template <arithmetic Scalar> constexpr Matrix &operator*=(Scalar scalar)
     {
         for (auto &row : elements)
         {
@@ -71,8 +73,8 @@ struct Matrix
     }
 
     template <std::floating_point U, std::size_t OtherColumns>
-    [[nodiscard]] constexpr Matrix<T, Rows, OtherColumns> operator*(
-        const Matrix<U, Columns, OtherColumns> &other) const
+    [[nodiscard]] constexpr Matrix<T, Rows, OtherColumns>
+    operator*(const Matrix<U, Columns, OtherColumns> &other) const
     {
         Matrix<T, Rows, OtherColumns> result;
 
@@ -83,7 +85,8 @@ struct Matrix
                 for (std::size_t k = 0; k < Columns; ++k)
                 {
                     result.elements[row][column] +=
-                        elements[row][k] * static_cast<T>(other.elements[k][column]);
+                        elements[row][k] *
+                        static_cast<T>(other.elements[k][column]);
                 }
             }
         }
@@ -116,8 +119,8 @@ struct Matrix
 
     template <std::size_t FirstAxis, std::size_t SecondAxis>
     [[nodiscard]] static Matrix Rotation(T angleRadians)
-        requires(Rows == Columns &&
-                 FirstAxis < Rows && SecondAxis < Rows && FirstAxis != SecondAxis)
+        requires(Rows == Columns && FirstAxis < Rows && SecondAxis < Rows &&
+                 FirstAxis != SecondAxis)
     {
         Matrix rotation = Identity();
         const T cosine = static_cast<T>(std::cos(angleRadians));
@@ -154,9 +157,9 @@ struct Matrix
 };
 
 template <typename T, std::size_t Dimension>
-[[nodiscard]] constexpr Vector<T, Dimension> operator*(
-    const Vector<T, Dimension> &vector,
-    const Matrix<T, Dimension, Dimension> &matrix)
+[[nodiscard]] constexpr Vector<T, Dimension>
+operator*(const Vector<T, Dimension> &vector,
+          const Matrix<T, Dimension, Dimension> &matrix)
 {
     Vector<T, Dimension> result;
     for (std::size_t column = 0; column < Dimension; ++column)
@@ -170,9 +173,9 @@ template <typename T, std::size_t Dimension>
 }
 
 template <typename T, std::size_t Dimension>
-constexpr Vector<T, Dimension> &operator*=(
-    Vector<T, Dimension> &vector,
-    const Matrix<T, Dimension, Dimension> &matrix)
+constexpr Vector<T, Dimension> &
+operator*=(Vector<T, Dimension> &vector,
+           const Matrix<T, Dimension, Dimension> &matrix)
 {
     return vector = vector * matrix;
 }
@@ -181,4 +184,4 @@ using Mat2f = Matrix<float, 2, 2>;
 using Mat2d = Matrix<double, 2, 2>;
 using Mat3f = Matrix<float, 3, 3>;
 using Mat3d = Matrix<double, 3, 3>;
-}
+} // namespace math

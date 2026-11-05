@@ -5,7 +5,7 @@
 
 class Display
 {
-public:
+  public:
     Display(unsigned int width, unsigned int height);
     ~Display();
 
@@ -19,7 +19,7 @@ public:
 
     [[nodiscard]] bool isValid() const { return validState_; }
 
-private:
+  private:
     const unsigned int width_;
     const unsigned int height_;
 
